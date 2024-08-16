@@ -15,7 +15,7 @@
   boot.loader.grub.device = "/dev/nvme0n1";
   boot.loader.grub.useOSProber = true;
 
-  networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "gamnix"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -124,18 +124,16 @@
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.gamnix = {
     isNormalUser = true;
-    description = "Gamnix";
+    description = "user for gaming";
     extraGroups = [ "networkmanager" "wheel" ];
     shell = pkgs.zsh;
     packages = with pkgs; [
-      thunderbird
     ];
   };
 
   # Install firefox.
   programs.firefox.enable = true;
 
-  # 設定込みでパッケージを有効化
   programs = {
     git = {
       enable = true;
@@ -169,7 +167,6 @@
     winetricks
     # native wayland support (unstable)
     wineWowPackages.waylandFull
-    kitty
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -199,12 +196,8 @@
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "24.05"; # Did you read the comment?
   
-  # Linuxデスクトップ向けのパッケージマネージャ
-  # アプリケーションをサンドボックス化して実行する
-  # NixOSが対応していないアプリのインストールに使う
   services.flatpak.enable = true;
-  xdg.portal.enable = true; # flatpakに必要
-
+  xdg.portal.enable = true;
 
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
     "steam"
