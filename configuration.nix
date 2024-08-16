@@ -2,17 +2,18 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
-
+{ config, pkgs, lib, ... }:
 {
+
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
 
   # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.grub.enable = true;
+  boot.loader.grub.device = "/dev/nvme0n1";
+  boot.loader.grub.useOSProber = true;
 
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -42,16 +43,18 @@
     LC_TIME = "ja_JP.UTF-8";
   };
   i18n.inputMethod = {
-   enabled = "fcitx5";
+   enable = true;
+   type = "fcitx5";
    fcitx5.addons = [pkgs.fcitx5-mozc];
   };
   fonts = {
-   fonts = with pkgs; [
+   packages = with pkgs; [
      noto-fonts-cjk-serif
      noto-fonts-cjk-sans
      noto-fonts-emoji
      nerdfonts
      migu
+     hack-font
    ];
    fontDir.enable = true;
    fontconfig = {
@@ -82,17 +85,18 @@
    };
   };
 
+
   # Enable the X11 windowing system.
   services.xserver.enable = true;
 
-  # Enable the KDE Plasma Desktop Environment.
-  services.displayManager.sddm.enable = true;
-  services.xserver.desktopManager.plasma5.enable = true;
+  # Enable the GNOME Desktop Environment.
+  services.xserver.displayManager.gdm.enable = true;
+  services.xserver.desktopManager.gnome.enable = true;
 
   # Configure keymap in X11
-  services.xserver = {
+  services.xserver.xkb = {
     layout = "us";
-    xkbVariant = "";
+    variant = "";
   };
 
   # Enable CUPS to print documents.
@@ -106,11 +110,6 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    jack.enable = true;
     # If you want to use JACK applications, uncomment this
     #jack.enable = true;
 
@@ -119,73 +118,33 @@
     #media-session.enable = true;
   };
 
-  # Enable the GNOME Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-#   services.xserver.desktopManager.gnome.enable = true;
-
-  # Configure keymap in X11
-  services.xserver = {
-    layout = "us";
-    xkbVariant = "";
-  };
-
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
-
-
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.gamnix = {
     isNormalUser = true;
-    description = "NixOS";
+    description = "Gamnix";
     extraGroups = [ "networkmanager" "wheel" ];
+    shell = pkgs.zsh;
     packages = with pkgs; [
-      # thunderbird
+      thunderbird
     ];
   };
 
   # Install firefox.
   programs.firefox.enable = true;
-  programs.hyprland = {
-    enable = true;
-    nvidiaPatches = true;
-    xwayland.enable = true;
-  };
-
-  environment.sessionVariables = {
-    NIXOS_OZONE_WL = "1";
-  };
-
-  hardware = {
-    opengl.enable = true;
-    nvidia.modesetting.enable = true;
-  };
-
-  # waybar
-  programs.waybar.enable
-
-  #XDG portal
-  #xdg.portal.enable = true;
-  #xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-
-    # rofi keybind
-    # bind = $mainMod, S, exec, rofi -show drun -show-icons
 
   # 設定込みでパッケージを有効化
   programs = {
     git = {
       enable = true;
     };
-    neovim = {
+    hyprland = {
+      # Install the packages from nixpkgs
       enable = true;
-      defaultEditor = true; # $EDITOR=nvimに設定
-      viAlias = true;
-      vimAlias = true;
-    };
-    zsh = {
-      enable = true;
+      # Whether to enable XWayland
+      xwayland.enable = true;
     };
   };
 
@@ -194,9 +153,7 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    wget
-    zsh
-    ranger
+    git
     # wine
     # support both 32- and 64-bit applications
     wineWowPackages.stable
@@ -212,6 +169,7 @@
     winetricks
     # native wayland support (unstable)
     wineWowPackages.waylandFull
+    kitty
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -248,17 +206,17 @@
   xdg.portal.enable = true; # flatpakに必要
 
 
-  # nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
-  #   "steam"
-  #   "steam-original"
-  #   "steam-run"
-  # ];
-  # programs.steam = {
-  #   enable = true;
-  #   remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
-  #   dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
-  #   localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
-  # };
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
+    "steam"
+    "steam-original"
+    "steam-run"
+  ];
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+    localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
+  };
 
   nix = {
     settings = {
